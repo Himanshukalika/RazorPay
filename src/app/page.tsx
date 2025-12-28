@@ -23,11 +23,11 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: 1, // ₹1 for testing
+          amount: 1,
           currency: 'INR',
           receipt: `receipt_${Date.now()}`,
           notes: {
-            isAutopay: isAutopay,
+            isAutopay: false,
           },
         }),
       });
@@ -36,6 +36,35 @@ export default function Home() {
       return data.order;
     } catch (error) {
       console.error('Error creating order:', error);
+      throw error;
+    }
+  };
+
+  const createSubscription = async () => {
+    try {
+      // You need to create a plan in Razorpay Dashboard first
+      // Then replace 'YOUR_PLAN_ID' with actual plan ID
+      const planId = process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID || 'plan_xxxxxxxxxxxxx';
+
+      const response = await fetch('/api/razorpay/create-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId: planId,
+          totalCount: 12, // 12 months
+          quantity: 1,
+          notes: {
+            isAutopay: true,
+          },
+        }),
+      });
+
+      const data = await response.json();
+      return data.subscription;
+    } catch (error) {
+      console.error('Error creating subscription:', error);
       throw error;
     }
   };
@@ -67,54 +96,77 @@ export default function Home() {
     trackInitiateCheckout(1, 'INR');
 
     try {
-      // Create order
-      const order = await createOrder();
+      if (isAutopay) {
+        // Create subscription for autopay
+        const subscription = await createSubscription();
 
-      // Initialize Razorpay
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: 'Test Payment',
-        description: isAutopay ? 'Autopay Test - ₹1' : 'One-time Test Payment - ₹1',
-        order_id: order.id,
-        prefill: {
-          name: 'Test User',
-          email: 'test@example.com',
-          contact: '9999999999',
-        },
-        notes: {
-          isAutopay: isAutopay,
-        },
-        theme: {
-          color: '#5f6fff',
-        },
-        handler: async function (response: any) {
-          // Verify payment
-          const isVerified = await verifyPayment({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          });
-
-          if (isVerified) {
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          subscription_id: subscription.id,
+          name: 'Autopay Subscription',
+          description: 'Monthly Recurring Payment - ₹1',
+          theme: {
+            color: '#5f6fff',
+          },
+          handler: async function (response: any) {
+            // Subscription activated
             setPaymentStatus('success');
-            // Track successful payment
             trackPurchase(1, 'INR', response.razorpay_payment_id);
-          } else {
-            setPaymentStatus('error');
-          }
-          setLoading(false);
-        },
-        modal: {
-          ondismiss: function () {
             setLoading(false);
           },
-        },
-      };
+          modal: {
+            ondismiss: function () {
+              setLoading(false);
+            },
+          },
+        };
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+      } else {
+        // Create one-time order
+        const order = await createOrder();
+
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: order.amount,
+          currency: order.currency,
+          name: 'One-time Payment',
+          description: 'Single Payment - ₹1',
+          order_id: order.id,
+          prefill: {
+            name: 'Test User',
+            email: 'test@example.com',
+            contact: '9999999999',
+          },
+          theme: {
+            color: '#5f6fff',
+          },
+          handler: async function (response: any) {
+            const isVerified = await verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            if (isVerified) {
+              setPaymentStatus('success');
+              trackPurchase(1, 'INR', response.razorpay_payment_id);
+            } else {
+              setPaymentStatus('error');
+            }
+            setLoading(false);
+          },
+          modal: {
+            ondismiss: function () {
+              setLoading(false);
+            },
+          },
+        };
+
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+      }
     } catch (error) {
       console.error('Payment error:', error);
       setPaymentStatus('error');
@@ -146,10 +198,10 @@ export default function Home() {
 
             {/* Title */}
             <h1 className="text-4xl font-bold mb-3 gradient-text">
-              Razorpay Test
+              Razorpay Payment
             </h1>
             <p className="text-gray-400 mb-8">
-              Click below to test payment of ₹1
+              {isAutopay ? 'Setup recurring autopay' : 'One-time payment of ₹1'}
             </p>
 
             {/* Autopay Toggle */}
@@ -164,6 +216,11 @@ export default function Home() {
                 <span className="font-semibold text-white">Enable Autopay</span>
                 <span className="text-xl">🔄</span>
               </label>
+              {isAutopay && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Monthly recurring payment mandate will be created
+                </p>
+              )}
             </div>
 
             {/* Payment Button */}
@@ -180,7 +237,7 @@ export default function Home() {
               ) : (
                 <span className="flex items-center justify-center gap-3">
                   <span>🔒</span>
-                  {isAutopay ? 'Setup Autopay (₹1)' : 'Pay ₹1 Now'}
+                  {isAutopay ? 'Setup Autopay (₹1/month)' : 'Pay ₹1 Now'}
                 </span>
               )}
             </button>
@@ -190,7 +247,7 @@ export default function Home() {
               <div className="p-4 rounded-xl bg-success/10 border border-success/30 text-success animate-in slide-in-from-bottom">
                 <p className="flex items-center justify-center gap-2 font-semibold">
                   <span className="text-2xl">✓</span>
-                  Payment Successful!
+                  {isAutopay ? 'Autopay Activated!' : 'Payment Successful!'}
                 </p>
               </div>
             )}
