@@ -113,6 +113,11 @@ export default function Home() {
             setPaymentStatus('success');
             trackPurchase(1, 'INR', response.razorpay_payment_id);
             setLoading(false);
+
+            // Redirect to thank you page
+            setTimeout(() => {
+              window.location.href = `/thank-you?payment_id=${response.razorpay_payment_id}&amount=1&autopay=true`;
+            }, 1000);
           },
           modal: {
             ondismiss: function () {
@@ -152,6 +157,11 @@ export default function Home() {
             if (isVerified) {
               setPaymentStatus('success');
               trackPurchase(1, 'INR', response.razorpay_payment_id);
+
+              // Redirect to thank you page
+              setTimeout(() => {
+                window.location.href = `/thank-you?payment_id=${response.razorpay_payment_id}&amount=1&autopay=false`;
+              }, 1000);
             } else {
               setPaymentStatus('error');
             }
