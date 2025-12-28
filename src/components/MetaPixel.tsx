@@ -16,8 +16,8 @@ export default function MetaPixel() {
     useEffect(() => {
         if (!pixelId) return;
 
-        // Initialize Facebook Pixel
-        if (typeof window !== 'undefined' && window.fbq) {
+        // Initialize Facebook Pixel only once
+        if (typeof window !== 'undefined' && window.fbq && !window._fbq) {
             window.fbq('init', pixelId);
             window.fbq('track', 'PageView');
         }
