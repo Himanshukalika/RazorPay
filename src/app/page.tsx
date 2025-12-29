@@ -139,11 +139,6 @@ export default function Home() {
           name: 'One-time Payment',
           description: 'Single Payment - ₹1',
           order_id: order.id,
-          prefill: {
-            name: 'Test User',
-            email: 'test@example.com',
-            contact: '9999999999',
-          },
           theme: {
             color: '#5f6fff',
           },
@@ -191,7 +186,7 @@ export default function Home() {
         strategy="lazyOnload"
       />
 
-      <main className="min-h-screen flex items-center justify-center p-8">
+      <main className="min-h-screen flex items-center justify-center p-4 md:p-8">
         {/* Background Effects */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse-slow"></div>
@@ -200,44 +195,50 @@ export default function Home() {
 
         <div className="w-full max-w-md relative z-10">
           {/* Card */}
-          <div className="glass rounded-3xl p-12 text-center card-enter">
+          <div className="glass rounded-3xl p-10 md:p-12 text-center card-enter">
             {/* Logo/Icon */}
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl animate-float glow-effect">
+            <div className="w-24 h-24 mx-auto mb-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-5xl animate-float glow-effect">
               💳
             </div>
 
-            {/* Title */}
-            <h1 className="text-4xl font-bold mb-3 gradient-text">
-              Razorpay Payment
-            </h1>
-            <p className="text-gray-400 mb-8">
-              {isAutopay ? 'Setup recurring autopay' : 'One-time payment of ₹1'}
-            </p>
+            {/* Header */}
+            <div className="mb-10">
+              <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
+                Razorpay Payment
+              </h1>
+              <p className="text-gray-400 text-base">
+                {isAutopay ? 'Setup recurring autopay' : 'One-time secure payment'}
+              </p>
+            </div>
 
-            {/* Autopay Toggle */}
-            <div className="mb-8 glass rounded-xl p-4 border border-primary/30">
+            {/* Autopay Checkbox */}
+            <div className="mb-8 glass rounded-xl p-5 border border-primary/20">
               <label className="flex items-center justify-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isAutopay}
                   onChange={(e) => setIsAutopay(e.target.checked)}
-                  className="w-5 h-5 rounded border-border bg-card checked:bg-primary focus:ring-2 focus:ring-primary/50"
+                  className="w-5 h-5 rounded border-border bg-card checked:bg-primary focus:ring-2 focus:ring-primary/50 cursor-pointer"
                 />
-                <span className="font-semibold text-white">Enable Autopay</span>
-                <span className="text-xl">🔄</span>
+                <div className="text-left">
+                  <span className="font-semibold text-white flex items-center gap-2">
+                    <span>Enable Autopay</span>
+                    <span className="text-xl">🔄</span>
+                  </span>
+                  {isAutopay && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Monthly recurring payment mandate
+                    </p>
+                  )}
+                </div>
               </label>
-              {isAutopay && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Monthly recurring payment mandate will be created
-                </p>
-              )}
             </div>
 
-            {/* Payment Button */}
+            {/* Single Payment Button */}
             <button
               onClick={handlePayment}
               disabled={loading}
-              className="w-full py-5 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary glow-effect disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 mb-6"
+              className="w-full py-5 rounded-xl font-bold text-xl text-white bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary glow-effect disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] mb-6"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-3">
@@ -245,16 +246,15 @@ export default function Home() {
                   Processing...
                 </span>
               ) : (
-                <span className="flex items-center justify-center gap-3">
-                  <span>🔒</span>
-                  {isAutopay ? 'Setup Autopay (₹1/month)' : 'Pay ₹1 Now'}
+                <span className="flex items-center justify-center gap-2">
+                  {isAutopay ? '🔄 Setup Autopay (₹1/month)' : '💳 Make Payment'}
                 </span>
               )}
             </button>
 
             {/* Payment Status */}
             {paymentStatus === 'success' && (
-              <div className="p-4 rounded-xl bg-success/10 border border-success/30 text-success animate-in slide-in-from-bottom">
+              <div className="p-4 rounded-xl bg-success/10 border border-success/30 text-success animate-in slide-in-from-bottom mb-6">
                 <p className="flex items-center justify-center gap-2 font-semibold">
                   <span className="text-2xl">✓</span>
                   {isAutopay ? 'Autopay Activated!' : 'Payment Successful!'}
@@ -263,7 +263,7 @@ export default function Home() {
             )}
 
             {paymentStatus === 'error' && (
-              <div className="p-4 rounded-xl bg-error/10 border border-error/30 text-error animate-in slide-in-from-bottom">
+              <div className="p-4 rounded-xl bg-error/10 border border-error/30 text-error animate-in slide-in-from-bottom mb-6">
                 <p className="flex items-center justify-center gap-2 font-semibold">
                   <span className="text-2xl">✗</span>
                   Payment Failed
@@ -271,30 +271,30 @@ export default function Home() {
               </div>
             )}
 
-            {/* Info */}
-            <div className="mt-8 pt-6 border-t border-border">
-              <p className="text-sm text-gray-500">
+            {/* Footer Info */}
+            <div className="pt-6 border-t border-border">
+              <p className="text-sm text-gray-400 mb-1">
                 Powered by Razorpay
               </p>
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-xs text-gray-500">
                 Secure & Trusted Payment Gateway
               </p>
             </div>
           </div>
 
           {/* Features */}
-          <div className="mt-6 grid grid-cols-3 gap-4">
-            <div className="glass glass-hover rounded-xl p-4 text-center">
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            <div className="glass glass-hover rounded-xl p-4 text-center transition-all duration-300">
               <div className="text-2xl mb-2">🔐</div>
-              <p className="text-xs text-gray-400">Secure</p>
+              <p className="text-xs text-gray-400 font-medium">Secure</p>
             </div>
-            <div className="glass glass-hover rounded-xl p-4 text-center">
+            <div className="glass glass-hover rounded-xl p-4 text-center transition-all duration-300">
               <div className="text-2xl mb-2">⚡</div>
-              <p className="text-xs text-gray-400">Fast</p>
+              <p className="text-xs text-gray-400 font-medium">Fast</p>
             </div>
-            <div className="glass glass-hover rounded-xl p-4 text-center">
+            <div className="glass glass-hover rounded-xl p-4 text-center transition-all duration-300">
               <div className="text-2xl mb-2">✓</div>
-              <p className="text-xs text-gray-400">Trusted</p>
+              <p className="text-xs text-gray-400 font-medium">Trusted</p>
             </div>
           </div>
         </div>
