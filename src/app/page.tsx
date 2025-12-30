@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Script from 'next/script';
-import { trackInitiateCheckout, trackPurchase, trackAddPaymentInfo } from '@/components/MetaPixel';
+import { trackInitiateCheckout, trackPurchase, trackAddPaymentInfo, trackEvent } from '@/components/MetaPixel';
 
 declare global {
   interface Window {
@@ -111,13 +111,23 @@ export default function Home() {
           handler: async function (response: any) {
             // Subscription activated
             setPaymentStatus('success');
+
+            // Track conversion with Meta Pixel
             trackPurchase(1, 'INR', response.razorpay_payment_id);
+
+            // Track Lead event for autopay
+            trackEvent('Lead', {
+              value: 1,
+              currency: 'INR',
+              content_name: 'Autopay Subscription',
+            });
+
             setLoading(false);
 
-            // Redirect to thank you page
+            // Redirect to external thank you page
             setTimeout(() => {
-              window.location.href = `/thank-you?payment_id=${response.razorpay_payment_id}&amount=1&autopay=true`;
-            }, 1000);
+              window.location.href = 'https://hsmschoolmakeup.in/thank-you-page-s1/';
+            }, 1500);
           },
           modal: {
             ondismiss: function () {
@@ -151,12 +161,14 @@ export default function Home() {
 
             if (isVerified) {
               setPaymentStatus('success');
+
+              // Track conversion with Meta Pixel
               trackPurchase(1, 'INR', response.razorpay_payment_id);
 
-              // Redirect to thank you page
+              // Redirect to external thank you page
               setTimeout(() => {
-                window.location.href = `/thank-you?payment_id=${response.razorpay_payment_id}&amount=1&autopay=false`;
-              }, 1000);
+                window.location.href = 'https://hsmschoolmakeup.in/thank-you-page-s1/';
+              }, 1500);
             } else {
               setPaymentStatus('error');
             }
