@@ -672,29 +672,48 @@ export default function Home() {
                   </div>
 
                   {/* Founders Photo */}
-                  <div className="flex-shrink-0 w-full">
-                    <div className="relative rounded-full overflow-hidden border-4 border-pink-200 shadow-lg mx-auto w-48 h-48">
+                  <div className="w-full mt-6">
+                    <div className="rounded-lg overflow-hidden shadow-lg border-2 border-pink-200">
                       <img
-                        src="/images/founders.jpg"
+                        src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/Untitled-design-2025-06-08T020303.110.png"
                         alt="Heena & Dhvani Shah - Founders of HSM School of Makeup"
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto object-cover"
                       />
                     </div>
                   </div>
-                </div>
 
-                {/* Achievement Photos Gallery */}
-                <div className="mt-8">
-                  <div className="grid grid-cols-2 gap-3">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="rounded-lg overflow-hidden shadow-md border border-gray-200">
-                        <img
-                          src={`/images/achievement-${i}.png`}
-                          alt={`Achievement ${i}`}
+                  {/* Additional Founders Gallery */}
+                  <div className="w-full mt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-lg overflow-hidden shadow-md border border-gray-200">
+                        <img 
+                          src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/IMG_9097.jpg"
+                          alt="HSM School - Achievement 1"
                           className="w-full h-full object-cover aspect-[3/4]"
                         />
                       </div>
-                    ))}
+                      <div className="rounded-lg overflow-hidden shadow-md border border-gray-200">
+                        <img 
+                          src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/IMG_9107.jpg"
+                          alt="HSM School - Achievement 2"
+                          className="w-full h-full object-cover aspect-[3/4]"
+                        />
+                      </div>
+                      <div className="rounded-lg overflow-hidden shadow-md border border-gray-200">
+                        <img 
+                          src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/IMG_9106.jpg"
+                          alt="HSM School - Achievement 3"
+                          className="w-full h-full object-cover aspect-[3/4]"
+                        />
+                      </div>
+                      <div className="rounded-lg overflow-hidden shadow-md border border-gray-200">
+                        <img 
+                          src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/IMG_0972_Original-scaled-1-1536x2048.jpg"
+                          alt="HSM School - Achievement 4"
+                          className="w-full h-full object-cover aspect-[3/4]"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -741,7 +760,13 @@ export default function Home() {
                     {/* Rekha */}
                     <div className="border-b border-gray-200 pb-4">
                       <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-lg">R</div>
+                        <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-pink-200">
+                          <img
+                            src="/images/achievement-1.png"
+                            alt="Rekha"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                         <div>
                           <p className="font-medium text-gray-900 text-sm mb-1">Rekha – 15+ Years Experience (Mumbai)</p>
                           <div className="flex gap-0.5">
@@ -757,7 +782,13 @@ export default function Home() {
                     {/* Anjali */}
                     <div className="border-b border-gray-200 pb-4">
                       <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-lg">A</div>
+                        <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-purple-200">
+                          <img
+                            src="/images/achievement-2.png"
+                            alt="Anjali"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                         <div>
                           <p className="font-medium text-gray-900 text-sm mb-1">Anjali – Beginner Makeup Artist (Jaipur)</p>
                           <div className="flex gap-0.5">
@@ -773,7 +804,13 @@ export default function Home() {
                     {/* Neha */}
                     <div className="border-b border-gray-200 pb-4">
                       <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">N</div>
+                        <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-blue-200">
+                          <img
+                            src="/images/achievement-3.png"
+                            alt="Neha"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                         <div>
                           <p className="font-medium text-gray-900 text-sm mb-1">Neha – Working Professional (Delhi)</p>
                           <div className="flex gap-0.5">
@@ -789,7 +826,13 @@ export default function Home() {
                     {/* Pooja */}
                     <div className="border-b border-gray-200 pb-4">
                       <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">P</div>
+                        <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-green-200">
+                          <img
+                            src="/images/founders.jpg"
+                            alt="Pooja"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                         <div>
                           <p className="font-medium text-gray-900 text-sm mb-1">Pooja – Freelance Makeup Artist (Indore)</p>
                           <div className="flex gap-0.5">
@@ -805,7 +848,13 @@ export default function Home() {
                     {/* Kavita */}
                     <div className="pb-2">
                       <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">K</div>
+                        <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-orange-200">
+                          <img
+                            src="/images/kavita.png"
+                            alt="Kavita"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                         <div>
                           <p className="font-medium text-gray-900 text-sm mb-1">Kavita – Certified Makeup Artist (Ahmedabad)</p>
                           <div className="flex gap-0.5">
