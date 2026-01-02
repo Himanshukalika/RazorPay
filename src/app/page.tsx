@@ -1,316 +1,861 @@
 'use client';
 
 import { useState } from 'react';
-import Script from 'next/script';
-import { trackInitiateCheckout, trackPurchase, trackAddPaymentInfo, trackEvent } from '@/components/MetaPixel';
-
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+import { trackEvent, trackCustomEvent } from '@/components/FacebookPixel';
 
 export default function Home() {
-  const [loading, setLoading] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [isAutopay, setIsAutopay] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedPayment, setSelectedPayment] = useState('razorpay');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSubscription, setIsSubscription] = useState(true); // AutoPay enabled by default
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    country: 'IN',
+    state: '',
+  });
+  const pricePerMonth = 1.00;
 
-  const createOrder = async () => {
-    try {
-      const response = await fetch('/api/razorpay/create-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: 1,
-          currency: 'INR',
-          receipt: `receipt_${Date.now()}`,
-          notes: {
-            isAutopay: false,
-          },
-        }),
-      });
-
-      const data = await response.json();
-      return data.order;
-    } catch (error) {
-      console.error('Error creating order:', error);
-      throw error;
-    }
+  const handleQuantityChange = (delta: number) => {
+    const newQuantity = Math.max(1, Math.min(999, quantity + delta));
+    setQuantity(newQuantity);
   };
 
-  const createSubscription = async () => {
-    try {
-      // You need to create a plan in Razorpay Dashboard first
-      // Then replace 'YOUR_PLAN_ID' with actual plan ID
-      const planId = process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID || 'plan_xxxxxxxxxxxxx';
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
 
-      const response = await fetch('/api/razorpay/create-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          planId: planId,
-          totalCount: 12, // 12 months
-          quantity: 1,
-          notes: {
-            isAutopay: true,
-          },
-        }),
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+
+    // Track when user starts filling the form (InitiateCheckout)
+    if (name === 'firstName' && value.length === 1) {
+      trackEvent('InitiateCheckout', {
+        content_name: 'MakeUp Mastry Club',
+        content_category: 'Subscription',
+        value: pricePerMonth,
+        currency: 'INR',
       });
-
-      const data = await response.json();
-      return data.subscription;
-    } catch (error) {
-      console.error('Error creating subscription:', error);
-      throw error;
     }
-  };
 
-  const verifyPayment = async (paymentData: any) => {
-    try {
-      const response = await fetch('/api/razorpay/verify-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(paymentData),
+    // Track form completion progress
+    if (name === 'email' && value.includes('@')) {
+      trackCustomEvent('FormProgress', {
+        step: 'email_entered',
+        content_name: 'MakeUp Mastry Club',
       });
-
-      const data = await response.json();
-      return data.success;
-    } catch (error) {
-      console.error('Error verifying payment:', error);
-      return false;
     }
   };
 
   const handlePayment = async () => {
-    setLoading(true);
-    setPaymentStatus('idle');
+    // Validate form
+    if (!formData.firstName || !formData.lastName || !formData.email) {
+      alert('Please fill in all required fields (First Name, Last Name, Email)');
+      return;
+    }
 
-    // Track payment initiation
-    trackAddPaymentInfo(isAutopay);
-    trackInitiateCheckout(1, 'INR');
+    setIsProcessing(true);
 
     try {
-      if (isAutopay) {
-        // Create subscription for autopay
-        const subscription = await createSubscription();
+      const totalAmount = pricePerMonth * quantity;
 
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          subscription_id: subscription.id,
-          name: 'Autopay Subscription',
-          description: 'Monthly Recurring Payment - ₹1',
-          theme: {
-            color: '#5f6fff',
-          },
-          handler: async function (response: any) {
-            // Subscription activated
-            setPaymentStatus('success');
+      // Track AddToCart event when user clicks Complete Order
+      trackEvent('AddToCart', {
+        content_name: 'MakeUp Mastry Club',
+        content_type: 'product',
+        content_category: isSubscription ? 'Subscription' : 'One-time',
+        value: totalAmount,
+        currency: 'INR',
+      });
 
-            // Track conversion with Meta Pixel
-            trackPurchase(1, 'INR', response.razorpay_payment_id);
+      if (selectedPayment === 'razorpay') {
+        if (isSubscription) {
+          // Create Subscription (AutoPay)
+          console.log('Creating Razorpay subscription...');
 
-            // Track Lead event for autopay
-            trackEvent('Lead', {
-              value: 1,
-              currency: 'INR',
-              content_name: 'Autopay Subscription',
-            });
+          const response = await fetch('/api/razorpay/subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              planId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID,
+              totalCount: 12, // 12 months
+              notes: {
+                customer_name: `${formData.firstName} ${formData.lastName}`,
+                customer_email: formData.email,
+              }
+            }),
+          });
 
-            setLoading(false);
+          const data = await response.json();
+          console.log('Subscription response:', data);
 
-            // Redirect to external thank you page
-            setTimeout(() => {
-              window.location.href = 'https://hsmschoolmakeup.in/thank-you-page-s1/';
-            }, 1500);
-          },
-          modal: {
-            ondismiss: function () {
-              setLoading(false);
+          if (!data.success) {
+            throw new Error(data.error || 'Failed to create subscription');
+          }
+
+          // Initialize Razorpay subscription checkout
+          const options = {
+            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+            subscription_id: data.subscriptionId,
+            name: 'MakeUp Mastry Club',
+            description: 'Monthly Subscription - Makeup Mastery Membership',
+            handler: async function (response: any) {
+              console.log('Subscription payment response:', response);
+
+              try {
+                // Verify subscription payment
+                const verifyResponse = await fetch('/api/razorpay/subscription/verify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    razorpay_subscription_id: response.razorpay_subscription_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                  }),
+                });
+
+                const verifyData = await verifyResponse.json();
+                console.log('Subscription verification response:', verifyData);
+
+                if (verifyData.success) {
+                  // Track successful subscription purchase
+                  trackEvent('Subscribe', {
+                    content_name: 'MakeUp Mastry Club',
+                    content_category: 'Subscription',
+                    value: pricePerMonth * quantity,
+                    currency: 'INR',
+                    predicted_ltv: pricePerMonth * 12, // Annual value
+                  });
+
+                  trackEvent('Purchase', {
+                    content_name: 'MakeUp Mastry Club - Monthly Subscription',
+                    content_type: 'product',
+                    value: pricePerMonth * quantity,
+                    currency: 'INR',
+                    num_items: quantity,
+                  });
+
+
+                  // Redirect to thank you page with order details
+                  const params = new URLSearchParams({
+                    subscription_id: response.razorpay_subscription_id,
+                    payment_id: response.razorpay_payment_id,
+                    amount: (pricePerMonth * quantity).toString(),
+                    type: 'subscription'
+                  });
+                  window.location.href = `/thank-you?${params.toString()}`;
+                } else {
+                  alert('❌ Subscription verification failed. Please contact support.');
+                }
+              } catch (verifyError) {
+                console.error('Subscription verification error:', verifyError);
+                alert('❌ Subscription verification failed. Please contact support.');
+              }
+              setIsProcessing(false);
             },
-          },
-        };
-
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
-      } else {
-        // Create one-time order
-        const order = await createOrder();
-
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: order.amount,
-          currency: order.currency,
-          name: 'One-time Payment',
-          description: 'Single Payment - ₹1',
-          order_id: order.id,
-          theme: {
-            color: '#5f6fff',
-          },
-          handler: async function (response: any) {
-            const isVerified = await verifyPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-
-            if (isVerified) {
-              setPaymentStatus('success');
-
-              // Track conversion with Meta Pixel
-              trackPurchase(1, 'INR', response.razorpay_payment_id);
-
-              // Redirect to external thank you page
-              setTimeout(() => {
-                window.location.href = 'https://hsmschoolmakeup.in/thank-you-page-s1/';
-              }, 1500);
-            } else {
-              setPaymentStatus('error');
+            prefill: {
+              name: `${formData.firstName} ${formData.lastName}`,
+              email: formData.email,
+              contact: '',
+            },
+            theme: {
+              color: '#2563eb',
+            },
+            modal: {
+              ondismiss: function () {
+                console.log('Subscription modal dismissed');
+                setIsProcessing(false);
+              }
             }
-            setLoading(false);
-          },
-          modal: {
-            ondismiss: function () {
-              setLoading(false);
-            },
-          },
-        };
+          };
 
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
+          console.log('Opening Razorpay subscription with options:', { ...options, key: 'HIDDEN' });
+
+          if (typeof window !== 'undefined' && (window as any).Razorpay) {
+            const razorpay = new (window as any).Razorpay(options);
+            razorpay.open();
+          } else {
+            throw new Error('Razorpay SDK not loaded. Please refresh the page.');
+          }
+        } else {
+          // One-time payment
+          console.log('Creating Razorpay order...');
+
+          const response = await fetch('/api/razorpay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: totalAmount, currency: 'INR' }),
+          });
+
+          const data = await response.json();
+          console.log('Order response:', data);
+
+          if (!data.success) {
+            throw new Error(data.error || 'Failed to create order');
+          }
+
+          // Initialize Razorpay checkout
+          const options = {
+            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+            amount: data.amount,
+            currency: data.currency,
+            name: 'MakeUp Mastry Club',
+            description: 'One-time Payment - Makeup Mastery Membership',
+            order_id: data.orderId,
+            handler: async function (response: any) {
+              console.log('Payment response:', response);
+
+              try {
+                // Verify payment
+                const verifyResponse = await fetch('/api/razorpay/verify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                  }),
+                });
+
+                const verifyData = await verifyResponse.json();
+                console.log('Verification response:', verifyData);
+
+                if (verifyData.success) {
+                  // Track successful one-time purchase
+                  trackEvent('Purchase', {
+                    content_name: 'MakeUp Mastry Club - One-time Payment',
+                    content_type: 'product',
+                    value: pricePerMonth * quantity,
+                    currency: 'INR',
+                    num_items: quantity,
+                  });
+
+
+                  // Redirect to thank you page with order details
+                  const params = new URLSearchParams({
+                    order_id: response.razorpay_order_id,
+                    payment_id: response.razorpay_payment_id,
+                    amount: (pricePerMonth * quantity).toString(),
+                    type: 'onetime'
+                  });
+                  window.location.href = `/thank-you?${params.toString()}`;
+                } else {
+                  alert('❌ Payment verification failed. Please contact support.');
+                }
+              } catch (verifyError) {
+                console.error('Verification error:', verifyError);
+                alert('❌ Payment verification failed. Please contact support.');
+              }
+              setIsProcessing(false);
+            },
+            prefill: {
+              name: `${formData.firstName} ${formData.lastName}`,
+              email: formData.email,
+              contact: '',
+            },
+            theme: {
+              color: '#2563eb',
+            },
+            modal: {
+              ondismiss: function () {
+                console.log('Payment modal dismissed');
+                setIsProcessing(false);
+              }
+            }
+          };
+
+          console.log('Opening Razorpay with options:', { ...options, key: 'HIDDEN' });
+
+          if (typeof window !== 'undefined' && (window as any).Razorpay) {
+            const razorpay = new (window as any).Razorpay(options);
+            razorpay.open();
+          } else {
+            throw new Error('Razorpay SDK not loaded. Please refresh the page.');
+          }
+        }
+      } else {
+        // Test card payment
+        alert('Test card payment selected. This is a demo mode.');
+        setIsProcessing(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error);
-      setPaymentStatus('error');
-      setLoading(false);
+      alert(`Payment failed: ${error.message || 'Please try again.'}`);
+      setIsProcessing(false);
     }
   };
 
   return (
-    <>
-      <Script
-        src="https://checkout.razorpay.com/v1/checkout.js"
-        strategy="lazyOnload"
-      />
-
-      <main className="min-h-screen flex items-center justify-center p-4 md:p-8">
-        {/* Background Effects */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="text-center pt-12 pb-8">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="text-gray-700"
+          >
+            <path
+              d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+            <path
+              d="M9 12L11 14L15 10"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <h1 className="text-3xl font-bold text-gray-900">Secure Checkout</h1>
         </div>
+        <p className="text-base text-gray-500">Enter details to complete purchase.</p>
+      </div>
 
-        <div className="w-full max-w-md relative z-10">
-          {/* Card */}
-          <div className="glass rounded-3xl p-10 md:p-12 text-center card-enter">
-            {/* Logo/Icon */}
-            <div className="w-24 h-24 mx-auto mb-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-5xl animate-float glow-effect">
-              💳
-            </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Checkout Form (2/3 width) */}
+          <div className="lg:col-span-2">
+            {/* Single Common Card for All Sections */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
 
-            {/* Header */}
-            <div className="mb-10">
-              <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
-                Razorpay Payment
-              </h1>
-              <p className="text-gray-400 text-base">
-                {isAutopay ? 'Setup recurring autopay' : 'One-time secure payment'}
-              </p>
-            </div>
+              {/* Product Section */}
+              <div className="mb-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">MakeUp Mastry Club</h2>
 
-            {/* Autopay Checkbox */}
-            <div className="mb-8 glass rounded-xl p-5 border border-primary/20">
-              <label className="flex items-center justify-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isAutopay}
-                  onChange={(e) => setIsAutopay(e.target.checked)}
-                  className="w-5 h-5 rounded border-border bg-card checked:bg-primary focus:ring-2 focus:ring-primary/50 cursor-pointer"
-                />
-                <div className="text-left">
-                  <span className="font-semibold text-white flex items-center gap-2">
-                    <span>Enable Autopay</span>
-                    <span className="text-xl">🔄</span>
-                  </span>
-                  {isAutopay && (
-                    <p className="text-xs text-gray-400 mt-1">
-                      Monthly recurring payment mandate
-                    </p>
-                  )}
+                <div className="border border-gray-200 rounded-lg p-4 sm:p-5">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Makeup mastry test 1</h3>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-xl sm:text-2xl font-bold text-gray-900">₹{pricePerMonth.toFixed(2)}</span>
+                        <span className="text-sm text-gray-500">/ Month</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
+                      <button
+                        onClick={() => handleQuantityChange(-1)}
+                        className="px-4 py-2 text-gray-600 hover:bg-gray-50 transition-colors border-r border-gray-300"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="text"
+                        value={quantity}
+                        readOnly
+                        className="w-16 text-center py-2 text-base font-medium"
+                      />
+                      <button
+                        onClick={() => handleQuantityChange(1)}
+                        className="px-4 py-2 text-gray-600 hover:bg-gray-50 transition-colors border-l border-gray-300"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </label>
+              </div>
+
+              {/* Order Summary - Mobile Only */}
+              <div className="mb-8 lg:hidden">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
+
+                  <div className="space-y-3">
+                    <div className="border-b border-gray-100 pb-2">
+                      <p className="font-semibold text-gray-900 text-sm">MakeUp Mastry Club</p>
+                    </div>
+
+                    <div className="flex justify-between items-start border-b border-gray-100 pb-3">
+                      <p className="text-sm text-gray-900">Makeup mastry test 1 x {quantity}</p>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-900">₹{(pricePerMonth * quantity).toFixed(2)}</p>
+                        <p className="text-xs text-gray-500">Per Month</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-1">
+                      <p className="text-sm font-semibold text-green-600">Total</p>
+                      <p className="text-sm font-semibold text-green-600">₹{(pricePerMonth * quantity).toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Plan Details - Mobile Only */}
+              <div className="mb-8 lg:hidden">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What You’ll Get Instantly</h3>
+
+                  <div className="text-gray-700 text-sm space-y-4">
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li><strong>Access to Makeup Mastery Club</strong> — a complete ongoing learning platform by HSM School of Makeup</li>
+                      <li><strong>Weekly New Lessons</strong> — one fresh, practical lesson added every week</li>
+                    </ul>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">🎓 Topics Covered Inside the Membership</h4>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li><strong>Makeup:</strong> Learn everything from fundamentals to advanced, trend-driven looks for real clients</li>
+                        <li><strong>Hair:</strong> Professional hairstyling techniques for bridal, party, and everyday looks</li>
+                        <li><strong>Nails:</strong> Basic to advanced nail skills to add high-value services</li>
+                        <li><strong>Business & Growth:</strong> Pricing, client acquisition, and scaling as a makeup professional</li>
+                        <li><strong>Instagram Growth Mini Course:</strong> Step-by-step system to attract clients and build your personal brand</li>
+                        <li><strong>AI Tools for Makeup Business:</strong> Smart tools to save time, automate work, and grow faster</li>
+                        <li><strong>Certification After Completion:</strong> Official certification to boost credibility and client trust</li>
+                      </ul>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-gray-100">
+                      <p><strong>One Membership, Everything Covered:</strong> Makeup, hair, nails, business, Instagram, and AI — all in one place</p>
+                      <p><strong>Turn Skills Into Income:</strong> Learn techniques and how to attract clients and grow professionally</p>
+                      <p><strong>Stay Credible & Future-Ready:</strong> Weekly updates, expert guidance, and certification to stay relevant</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Testimonials - Mobile Only */}
+              <div className="mb-8 lg:hidden">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What Students Are Saying</h3>
+
+                  <div className="space-y-5">
+                    {/* Rekha */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-lg">R</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Rekha – 15+ Years Experience (Mumbai)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">“I’ve been in the industry for over 15 years, but the business lessons gave me a fresh perspective on pricing and client handling.”</p>
+                    </div>
+
+                    {/* Anjali */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-lg">A</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Anjali – Beginner Makeup Artist (Jaipur)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">“I was new to makeup and thought I’d need multiple courses. This one membership covered everything and saved me money and confusion.”</p>
+                    </div>
+
+                    {/* Neha */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">N</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Neha – Working Professional (Delhi)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">“I’m not a full-time artist, but these lessons helped me confidently do my daily and event makeup.”</p>
+                    </div>
+
+                    {/* Pooja */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">P</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Pooja – Freelance Makeup Artist (Indore)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">“The Instagram mini course made content planning simple. My profile looks professional and enquiries have improved.”</p>
+                    </div>
+
+                    {/* Kavita */}
+                    <div className="pb-2">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">K</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Kavita – Certified Makeup Artist (Ahmedabad)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">“The certification added instant credibility and helped clients trust me more during bookings.”</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Basic Information */}
+              <div className="mb-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Your Basic Information</h2>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      placeholder="First Name"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      placeholder="Last Name"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="Email Address"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Billing Address */}
+              <div className="mb-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Billing Address</h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                      backgroundPosition: 'right 0.5rem center',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '1.5em 1.5em',
+                      paddingRight: '2.5rem'
+                    }}
+                  >
+                    <option value="IN">India</option>
+                    <option value="US">United States</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="CA">Canada</option>
+                  </select>
+
+                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                      backgroundPosition: 'right 0.5rem center',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '1.5em 1.5em',
+                      paddingRight: '2.5rem'
+                    }}
+                  >
+                    <option value="">Select State</option>
+                    <option value="AN">Andaman and Nicobar Islands</option>
+                    <option value="AP">Andhra Pradesh</option>
+                    <option value="AR">Arunachal Pradesh</option>
+                    <option value="AS">Assam</option>
+                    <option value="BR">Bihar</option>
+                    <option value="CH">Chandigarh</option>
+                    <option value="CT">Chhattisgarh</option>
+                    <option value="DH">Dadra and Nagar Haveli and Daman and Diu</option>
+                    <option value="DL">Delhi</option>
+                    <option value="GA">Goa</option>
+                    <option value="GJ">Gujarat</option>
+                    <option value="HR">Haryana</option>
+                    <option value="HP">Himachal Pradesh</option>
+                    <option value="JK">Jammu and Kashmir</option>
+                    <option value="JH">Jharkhand</option>
+                    <option value="KA">Karnataka</option>
+                    <option value="KL">Kerala</option>
+                    <option value="LA">Ladakh</option>
+                    <option value="LD">Lakshadweep</option>
+                    <option value="MP">Madhya Pradesh</option>
+                    <option value="MH">Maharashtra</option>
+                    <option value="MN">Manipur</option>
+                    <option value="ML">Meghalaya</option>
+                    <option value="MZ">Mizoram</option>
+                    <option value="NL">Nagaland</option>
+                    <option value="OR">Odisha</option>
+                    <option value="PY">Puducherry</option>
+                    <option value="PB">Punjab</option>
+                    <option value="RJ">Rajasthan</option>
+                    <option value="SK">Sikkim</option>
+                    <option value="TN">Tamil Nadu</option>
+                    <option value="TG">Telangana</option>
+                    <option value="TR">Tripura</option>
+                    <option value="UP">Uttar Pradesh</option>
+                    <option value="UT">Uttarakhand</option>
+                    <option value="WB">West Bengal</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Payment Information */}
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Your Payment Information</h2>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <label
+                    className={`flex-1 flex items-center justify-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedPayment === 'testcard'
+                      ? 'border-gray-400 bg-gray-50'
+                      : 'border-gray-300 bg-white hover:border-gray-400'
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="testcard"
+                      checked={selectedPayment === 'testcard'}
+                      onChange={(e) => setSelectedPayment(e.target.value)}
+                      className="sr-only"
+                    />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-gray-700">
+                      <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                      <path d="M2 10H22" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                    <span className="text-base font-medium text-gray-900">Test Card</span>
+                  </label>
+
+                  <label
+                    className={`flex-1 flex items-center justify-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedPayment === 'razorpay'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-300 bg-white hover:border-gray-400'
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="razorpay"
+                      checked={selectedPayment === 'razorpay'}
+                      onChange={(e) => setSelectedPayment(e.target.value)}
+                      className="sr-only"
+                    />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-gray-700">
+                      <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                      <path d="M2 10H22" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                    <span className="text-base font-medium text-gray-900">Razorpay Subscription</span>
+                  </label>
+                </div>
+              </div>
+
             </div>
 
-            {/* Single Payment Button */}
-            <button
-              onClick={handlePayment}
-              disabled={loading}
-              className="w-full py-5 rounded-xl font-bold text-xl text-white bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary glow-effect disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] mb-6"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-3">
-                  <span className="spinner"></span>
-                  Processing...
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  {isAutopay ? '🔄 Setup Autopay (₹1/month)' : '💳 Make Payment'}
-                </span>
-              )}
-            </button>
 
-            {/* Payment Status */}
-            {paymentStatus === 'success' && (
-              <div className="p-4 rounded-xl bg-success/10 border border-success/30 text-success animate-in slide-in-from-bottom mb-6">
-                <p className="flex items-center justify-center gap-2 font-semibold">
-                  <span className="text-2xl">✓</span>
-                  {isAutopay ? 'Autopay Activated!' : 'Payment Successful!'}
-                </p>
-              </div>
-            )}
 
-            {paymentStatus === 'error' && (
-              <div className="p-4 rounded-xl bg-error/10 border border-error/30 text-error animate-in slide-in-from-bottom mb-6">
-                <p className="flex items-center justify-center gap-2 font-semibold">
-                  <span className="text-2xl">✗</span>
-                  Payment Failed
-                </p>
-              </div>
-            )}
-
-            {/* Footer Info */}
-            <div className="pt-6 border-t border-border">
-              <p className="text-sm text-gray-400 mb-1">
-                Powered by Razorpay
+            {/* Terms and Complete Order */}
+            <div className="space-y-4">
+              <p className="text-sm text-gray-700 text-left">
+                By clicking Complete Order, you agree to the{' '}
+                <a href="#" className="text-blue-600 hover:underline font-medium">Terms of Service</a>
+                {' '}and{' '}
+                <a href="#" className="text-blue-600 hover:underline font-medium">Privacy Policy</a>
               </p>
-              <p className="text-xs text-gray-500">
-                Secure & Trusted Payment Gateway
-              </p>
+
+              <button
+                onClick={handlePayment}
+                disabled={isProcessing}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold text-xl py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm"
+              >
+                {isProcessing ? 'Processing...' : 'Complete Order'}
+                {!isProcessing && (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <path d="M12 8L16 12L12 16M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+
+              <div className="text-center pt-2">
+                <div className="flex justify-center gap-2 mb-3">
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%23EB001B'/%3E%3Crect x='18' width='14' height='32' rx='0' fill='%23FF5F00'/%3E%3Crect x='18' width='32' height='32' rx='4' fill='%23F79E1B'/%3E%3C/svg%3E" alt="Mastercard" className="h-8" />
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%231A1F71'/%3E%3Cpath d='M20 8L16 24h4l4-16h-4zm8 0l-6 16h4l6-16h-4z' fill='%23F7B600'/%3E%3C/svg%3E" alt="Visa" className="h-8" />
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%23003087'/%3E%3Cpath d='M18 10h-4l-4 12h4l4-12zm8 0l-4 12h4l4-12h-4z' fill='%23009CDE'/%3E%3C/svg%3E" alt="PayPal" className="h-8" />
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%23006FCF'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='white' font-family='Arial' font-size='10' font-weight='bold'%3EAMEX%3C/text%3E%3C/svg%3E" alt="Amex" className="h-8" />
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%23FF6000'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='white' font-family='Arial' font-size='8' font-weight='bold'%3EDISCOVER%3C/text%3E%3C/svg%3E" alt="Discover" className="h-8" />
+                </div>
+                <p className="text-sm text-gray-700 font-medium">Your payment is always safe &amp; secure.</p>
+              </div>
             </div>
           </div>
 
-          {/* Features */}
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            <div className="glass glass-hover rounded-xl p-4 text-center transition-all duration-300">
-              <div className="text-2xl mb-2">🔐</div>
-              <p className="text-xs text-gray-400 font-medium">Secure</p>
+          {/* Right Column - Plan Details (1/3 width) */}
+          <div className="lg:col-span-1">
+            {/* Order Summary - Desktop Only */}
+            <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
+
+              <div className="space-y-3">
+                <div className="border-b border-gray-100 pb-2">
+                  <p className="font-semibold text-gray-900 text-sm">MakeUp Mastry Club</p>
+                </div>
+
+                <div className="flex justify-between items-start border-b border-gray-100 pb-3">
+                  <p className="text-sm text-gray-900">Makeup mastry test 1 x {quantity}</p>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900">₹{(pricePerMonth * quantity).toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">Per Month</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center pt-1">
+                  <p className="text-sm font-semibold text-green-600">Total</p>
+                  <p className="text-sm font-semibold text-green-600">₹{(pricePerMonth * quantity).toFixed(2)}</p>
+                </div>
+              </div>
             </div>
-            <div className="glass glass-hover rounded-xl p-4 text-center transition-all duration-300">
-              <div className="text-2xl mb-2">⚡</div>
-              <p className="text-xs text-gray-400 font-medium">Fast</p>
+
+            <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 p-5 ">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">What You’ll Get Instantly</h3>
+
+              <div className="text-gray-700 text-sm space-y-4">
+                <ul className="list-disc pl-5 space-y-1">
+                  <li><strong>Access to Makeup Mastery Club</strong> — a complete ongoing learning platform by HSM School of Makeup</li>
+                  <li><strong>Weekly New Lessons</strong> — one fresh, practical lesson added every week</li>
+                </ul>
+
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">🎓 Topics Covered Inside the Membership</h4>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li><strong>Makeup:</strong> Learn everything from fundamentals to advanced, trend-driven looks for real clients</li>
+                    <li><strong>Hair:</strong> Professional hairstyling techniques for bridal, party, and everyday looks</li>
+                    <li><strong>Nails:</strong> Basic to advanced nail skills to add high-value services</li>
+                    <li><strong>Business & Growth:</strong> Pricing, client acquisition, and scaling as a makeup professional</li>
+                    <li><strong>Instagram Growth Mini Course:</strong> Step-by-step system to attract clients and build your personal brand</li>
+                    <li><strong>AI Tools for Makeup Business:</strong> Smart tools to save time, automate work, and grow faster</li>
+                    <li><strong>Certification After Completion:</strong> Official certification to boost credibility and client trust</li>
+                  </ul>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-gray-100">
+                  <p><strong>One Membership, Everything Covered:</strong> Makeup, hair, nails, business, Instagram, and AI — all in one place</p>
+                  <p><strong>Turn Skills Into Income:</strong> Learn techniques and how to attract clients and grow professionally</p>
+                  <p><strong>Stay Credible & Future-Ready:</strong> Weekly updates, expert guidance, and certification to stay relevant</p>
+                </div>
+              </div>
             </div>
-            <div className="glass glass-hover rounded-xl p-4 text-center transition-all duration-300">
-              <div className="text-2xl mb-2">✓</div>
-              <p className="text-xs text-gray-400 font-medium">Trusted</p>
+
+            {/* Testimonials - Desktop Only */}
+            <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 p-5 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">What Students Are Saying</h3>
+
+              <div className="space-y-5">
+                {/* Rekha */}
+                <div className="border-b border-gray-200 pb-4">
+                  <div className="flex items-start gap-3 mb-2">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-lg">R</div>
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm mb-1">Rekha – 15+ Years Experience (Mumbai)</p>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-yellow-400 text-sm">★</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 italic">“I’ve been in the industry for over 15 years, but the business lessons gave me a fresh perspective on pricing and client handling.”</p>
+                </div>
+
+                {/* Anjali */}
+                <div className="border-b border-gray-200 pb-4">
+                  <div className="flex items-start gap-3 mb-2">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-lg">A</div>
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm mb-1">Anjali – Beginner Makeup Artist (Jaipur)</p>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-yellow-400 text-sm">★</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 italic">“I was new to makeup and thought I’d need multiple courses. This one membership covered everything and saved me money and confusion.”</p>
+                </div>
+
+                {/* Neha */}
+                <div className="border-b border-gray-200 pb-4">
+                  <div className="flex items-start gap-3 mb-2">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">N</div>
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm mb-1">Neha – Working Professional (Delhi)</p>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-yellow-400 text-sm">★</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 italic">“I’m not a full-time artist, but these lessons helped me confidently do my daily and event makeup.”</p>
+                </div>
+
+                {/* Pooja */}
+                <div className="border-b border-gray-200 pb-4">
+                  <div className="flex items-start gap-3 mb-2">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">P</div>
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm mb-1">Pooja – Freelance Makeup Artist (Indore)</p>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-yellow-400 text-sm">★</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 italic">“The Instagram mini course made content planning simple. My profile looks professional and enquiries have improved.”</p>
+                </div>
+
+                {/* Kavita */}
+                <div className="pb-2">
+                  <div className="flex items-start gap-3 mb-2">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">K</div>
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm mb-1">Kavita – Certified Makeup Artist (Ahmedabad)</p>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-yellow-400 text-sm">★</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 italic">“The certification added instant credibility and helped clients trust me more during bookings.”</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </main>
-    </>
+      </div>
+    </div>
   );
 }

@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import MetaPixel from "@/components/MetaPixel";
+import FacebookPixel from "@/components/FacebookPixel";
+import Script from "next/script";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: "Razorpay Payment Gateway - Secure Autopay",
-  description: "Secure payment gateway with autopay functionality powered by Razorpay. Accept payments via credit card, debit card, UPI, net banking, and more.",
-  keywords: ["razorpay", "payment gateway", "autopay", "recurring payments", "secure payments"],
+  title: "MakeUp Mastry Club - Checkout",
+  description: "Join MakeUp Mastry Club - Complete ongoing learning platform",
 };
 
 export default function RootLayout({
@@ -13,14 +24,44 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const fbPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
+
   return (
     <html lang="en">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#5f6fff" />
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        {fbPixelId && (
+          <>
+            <Script id="facebook-pixel" strategy="afterInteractive">
+              {`
+                !function(f,b,e,v,n,t,s)
+                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t,s)}(window, document,'script',
+                'https://connect.facebook.net/en_US/fbevents.js');
+                fbq('init', '${fbPixelId}');
+                fbq('track', 'PageView');
+              `}
+            </Script>
+            <noscript>
+              <img
+                height="1"
+                width="1"
+                style={{ display: 'none' }}
+                src={`https://www.facebook.com/tr?id=${fbPixelId}&ev=PageView&noscript=1`}
+                alt=""
+              />
+            </noscript>
+          </>
+        )}
       </head>
-      <body className="antialiased">
-        <MetaPixel />
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <FacebookPixel />
         {children}
       </body>
     </html>
