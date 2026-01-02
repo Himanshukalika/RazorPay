@@ -459,61 +459,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Train With The Founders Section */}
-              <div className="mb-8">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6">
-                  Train With The Founders — Heena & Dhvani Shah
-                </h2>
-
-                <div className="flex flex-col md:flex-row gap-6 items-start">
-                  {/* Text Content */}
-                  <div className="flex-1 text-gray-700 text-sm sm:text-base leading-relaxed">
-                    <p className="mb-4">
-                      <span className="font-semibold">Heena Shah and Dhvani Shah</span> are the power duo behind{' '}
-                      <span className="font-semibold">HSM School of Makeup & Hair</span> — a platform that has trained thousands of artists across India.
-                    </p>
-
-                    <p className="mb-4">
-                      With <span className="font-semibold">40+ years of combined experience</span>, they've worked with Bollywood icons like Jacqueline Fernandez, Shehnaaz Gill, Javed Jaffrey, and Nawazuddin Siddiqui.
-                    </p>
-
-                    <p className="mb-4">
-                      Their mission is to make world-class beauty education{' '}
-                      <span className="font-semibold">simple, affordable & accessible</span> for every woman.
-                    </p>
-
-                    <p>
-                      Inside this club, they share the same training taught in their luxury academy — now brought to your home. Learn from mentors who've built confidence and careers for thousands of women just like you.
-                    </p>
-                  </div>
-
-                  {/* Founders Photo */}
-                  <div className="flex-shrink-0 w-full md:w-64">
-                    <div className="relative rounded-full overflow-hidden border-4 border-pink-200 shadow-lg mx-auto w-48 h-48 md:w-64 md:h-64">
-                      <img
-                        src="https://via.placeholder.com/400x400/FFB6C1/FFFFFF?text=Founders+Photo"
-                        alt="Heena & Dhvani Shah - Founders of HSM School of Makeup"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Achievement Photos Gallery */}
-                <div className="mt-8">
-                  <div className="grid grid-cols-2 gap-3">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="rounded-lg overflow-hidden shadow-md border border-gray-200">
-                        <img
-                          src={`https://via.placeholder.com/400x500/E8E8E8/666666?text=Achievement+${i}`}
-                          alt={`Achievement ${i}`}
-                          className="w-full h-full object-cover aspect-[3/4]"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
 
               {/* Order Summary - Mobile Only */}
               <div className="mb-8 lg:hidden">
@@ -694,6 +639,62 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Train With The Founders Section - Mobile Only */}
+              <div className="mb-8 lg:hidden">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6">
+                  Train With The Founders — Heena & Dhvani Shah
+                </h2>
+
+                <div className="flex flex-col gap-6 items-start">
+                  {/* Text Content */}
+                  <div className="flex-1 text-gray-700 text-sm sm:text-base leading-relaxed">
+                    <p className="mb-4">
+                      <span className="font-semibold">Heena Shah and Dhvani Shah</span> are the power duo behind{' '}
+                      <span className="font-semibold">HSM School of Makeup & Hair</span> — a platform that has trained thousands of artists across India.
+                    </p>
+
+                    <p className="mb-4">
+                      With <span className="font-semibold">40+ years of combined experience</span>, they've worked with Bollywood icons like Jacqueline Fernandez, Shehnaaz Gill, Javed Jaffrey, and Nawazuddin Siddiqui.
+                    </p>
+
+                    <p className="mb-4">
+                      Their mission is to make world-class beauty education{' '}
+                      <span className="font-semibold">simple, affordable & accessible</span> for every woman.
+                    </p>
+
+                    <p>
+                      Inside this club, they share the same training taught in their luxury academy — now brought to your home. Learn from mentors who've built confidence and careers for thousands of women just like you.
+                    </p>
+                  </div>
+
+                  {/* Founders Photo */}
+                  <div className="flex-shrink-0 w-full">
+                    <div className="relative rounded-full overflow-hidden border-4 border-pink-200 shadow-lg mx-auto w-48 h-48">
+                      <img
+                        src="https://via.placeholder.com/400x400/FFB6C1/FFFFFF?text=Founders+Photo"
+                        alt="Heena & Dhvani Shah - Founders of HSM School of Makeup"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Achievement Photos Gallery */}
+                <div className="mt-8">
+                  <div className="grid grid-cols-2 gap-3">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="rounded-lg overflow-hidden shadow-md border border-gray-200">
+                        <img
+                          src={`https://via.placeholder.com/400x500/E8E8E8/666666?text=Achievement+${i}`}
+                          alt={`Achievement ${i}`}
+                          className="w-full h-full object-cover aspect-[3/4]"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Plan Details - Mobile Only */}
               <div className="mb-8 lg:hidden">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
@@ -816,6 +817,29 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Second Complete Order Button - Mobile Only (Bottom) */}
+              <div className="lg:hidden space-y-4 mb-8">
+                <button
+                  onClick={handlePayment}
+                  disabled={isProcessing}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold text-xl py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg"
+                >
+                  {isProcessing ? 'Processing...' : 'Complete Order'}
+                  {!isProcessing && (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <path d="M12 8L16 12L12 16M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </button>
+
+                <p className="text-xs text-center text-gray-600">
+                  By clicking Complete Order, you agree to the{' '}
+                  <a href="#" className="text-blue-600 hover:underline">Terms of Service</a>
+                  {' '}and{' '}
+                  <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
+                </p>
+              </div>
 
 
             </div>
