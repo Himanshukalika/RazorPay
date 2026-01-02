@@ -15,7 +15,7 @@ export default function Home() {
     country: 'IN',
     state: '',
   });
-  const pricePerMonth = 1.00;
+  const pricePerMonth = 999.00;
 
   const handleQuantityChange = (delta: number) => {
     const newQuantity = Math.max(1, Math.min(999, quantity + delta));
@@ -393,128 +393,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Plan Details - Mobile Only */}
-              <div className="mb-8 lg:hidden">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What You’ll Get Instantly</h3>
-
-                  <div className="text-gray-700 text-sm space-y-4">
-                    <ul className="list-disc pl-5 space-y-1">
-                      <li><strong>Access to Makeup Mastery Club</strong> — a complete ongoing learning platform by HSM School of Makeup</li>
-                      <li><strong>Weekly New Lessons</strong> — one fresh, practical lesson added every week</li>
-                    </ul>
-
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">🎓 Topics Covered Inside the Membership</h4>
-                      <ul className="list-disc pl-5 space-y-1">
-                        <li><strong>Makeup:</strong> Learn everything from fundamentals to advanced, trend-driven looks for real clients</li>
-                        <li><strong>Hair:</strong> Professional hairstyling techniques for bridal, party, and everyday looks</li>
-                        <li><strong>Nails:</strong> Basic to advanced nail skills to add high-value services</li>
-                        <li><strong>Business & Growth:</strong> Pricing, client acquisition, and scaling as a makeup professional</li>
-                        <li><strong>Instagram Growth Mini Course:</strong> Step-by-step system to attract clients and build your personal brand</li>
-                        <li><strong>AI Tools for Makeup Business:</strong> Smart tools to save time, automate work, and grow faster</li>
-                        <li><strong>Certification After Completion:</strong> Official certification to boost credibility and client trust</li>
-                      </ul>
-                    </div>
-
-                    <div className="space-y-2 pt-2 border-t border-gray-100">
-                      <p><strong>One Membership, Everything Covered:</strong> Makeup, hair, nails, business, Instagram, and AI — all in one place</p>
-                      <p><strong>Turn Skills Into Income:</strong> Learn techniques and how to attract clients and grow professionally</p>
-                      <p><strong>Stay Credible & Future-Ready:</strong> Weekly updates, expert guidance, and certification to stay relevant</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Testimonials - Mobile Only */}
-              <div className="mb-8 lg:hidden">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What Students Are Saying</h3>
-
-                  <div className="space-y-5">
-                    {/* Rekha */}
-                    <div className="border-b border-gray-200 pb-4">
-                      <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-lg">R</div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm mb-1">Rekha – 15+ Years Experience (Mumbai)</p>
-                          <div className="flex gap-0.5">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className="text-yellow-400 text-sm">★</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 italic">“I’ve been in the industry for over 15 years, but the business lessons gave me a fresh perspective on pricing and client handling.”</p>
-                    </div>
-
-                    {/* Anjali */}
-                    <div className="border-b border-gray-200 pb-4">
-                      <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-lg">A</div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm mb-1">Anjali – Beginner Makeup Artist (Jaipur)</p>
-                          <div className="flex gap-0.5">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className="text-yellow-400 text-sm">★</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 italic">“I was new to makeup and thought I’d need multiple courses. This one membership covered everything and saved me money and confusion.”</p>
-                    </div>
-
-                    {/* Neha */}
-                    <div className="border-b border-gray-200 pb-4">
-                      <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">N</div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm mb-1">Neha – Working Professional (Delhi)</p>
-                          <div className="flex gap-0.5">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className="text-yellow-400 text-sm">★</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 italic">“I’m not a full-time artist, but these lessons helped me confidently do my daily and event makeup.”</p>
-                    </div>
-
-                    {/* Pooja */}
-                    <div className="border-b border-gray-200 pb-4">
-                      <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">P</div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm mb-1">Pooja – Freelance Makeup Artist (Indore)</p>
-                          <div className="flex gap-0.5">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className="text-yellow-400 text-sm">★</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 italic">“The Instagram mini course made content planning simple. My profile looks professional and enquiries have improved.”</p>
-                    </div>
-
-                    {/* Kavita */}
-                    <div className="pb-2">
-                      <div className="flex items-start gap-3 mb-2">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">K</div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm mb-1">Kavita – Certified Makeup Artist (Ahmedabad)</p>
-                          <div className="flex gap-0.5">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className="text-yellow-400 text-sm">★</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 italic">“The certification added instant credibility and helped clients trust me more during bookings.”</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Basic Information */}
               <div className="mb-8">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Your Basic Information</h2>
@@ -622,61 +500,171 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Payment Information */}
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Your Payment Information</h2>
+              {/* Terms and Complete Order - Mobile Only */}
+              <div className="lg:hidden space-y-4 mb-8">
+                <p className="text-sm text-gray-700 text-left">
+                  By clicking Complete Order, you agree to the{' '}
+                  <a href="#" className="text-blue-600 hover:underline font-medium">Terms of Service</a>
+                  {' '}and{' '}
+                  <a href="#" className="text-blue-600 hover:underline font-medium">Privacy Policy</a>
+                </p>
 
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <label
-                    className={`flex-1 flex items-center justify-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedPayment === 'testcard'
-                      ? 'border-gray-400 bg-gray-50'
-                      : 'border-gray-300 bg-white hover:border-gray-400'
-                      }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="testcard"
-                      checked={selectedPayment === 'testcard'}
-                      onChange={(e) => setSelectedPayment(e.target.value)}
-                      className="sr-only"
-                    />
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-gray-700">
-                      <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
-                      <path d="M2 10H22" stroke="currentColor" strokeWidth="2" />
+                <button
+                  onClick={handlePayment}
+                  disabled={isProcessing}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold text-xl py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                  {isProcessing ? 'Processing...' : 'Complete Order'}
+                  {!isProcessing && (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <path d="M12 8L16 12L12 16M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="text-base font-medium text-gray-900">Test Card</span>
-                  </label>
+                  )}
+                </button>
 
-                  <label
-                    className={`flex-1 flex items-center justify-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedPayment === 'razorpay'
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-300 bg-white hover:border-gray-400'
-                      }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="razorpay"
-                      checked={selectedPayment === 'razorpay'}
-                      onChange={(e) => setSelectedPayment(e.target.value)}
-                      className="sr-only"
-                    />
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-gray-700">
-                      <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
-                      <path d="M2 10H22" stroke="currentColor" strokeWidth="2" />
-                    </svg>
-                    <span className="text-base font-medium text-gray-900">Razorpay Subscription</span>
-                  </label>
+                <div className="text-center pt-2">
+                  <div className="flex justify-center gap-2 mb-3">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%23EB001B'/%3E%3Crect x='18' width='14' height='32' rx='0' fill='%23FF5F00'/%3E%3Crect x='18' width='32' height='32' rx='4' fill='%23F79E1B'/%3E%3C/svg%3E" alt="Mastercard" className="h-8" />
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%231A1F71'/%3E%3Cpath d='M20 8L16 24h4l4-16h-4zm8 0l-6 16h4l6-16h-4z' fill='%23F7B600'/%3E%3C/svg%3E" alt="Visa" className="h-8" />
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%23003087'/%3E%3Cpath d='M18 10h-4l-4 12h4l4-12zm8 0l-4 12h4l4-12h-4z' fill='%23009CDE'/%3E%3C/svg%3E" alt="PayPal" className="h-8" />
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%23006FCF'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='white' font-family='Arial' font-size='10' font-weight='bold'%3EAMEX%3C/text%3E%3C/svg%3E" alt="Amex" className="h-8" />
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='32' viewBox='0 0 50 32'%3E%3Crect width='50' height='32' rx='4' fill='%23FF6000'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='white' font-family='Arial' font-size='8' font-weight='bold'%3EDISCOVER%3C/text%3E%3C/svg%3E" alt="Discover" className="h-8" />
+                  </div>
+                  <p className="text-sm text-gray-700 font-medium">Your payment is always safe &amp; secure.</p>
                 </div>
               </div>
+
+              {/* Plan Details - Mobile Only */}
+              <div className="mb-8 lg:hidden">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What You'll Get Instantly</h3>
+
+                  <div className="text-gray-700 text-sm space-y-4">
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li><strong>Access to Makeup Mastery Club</strong> — a complete ongoing learning platform by HSM School of Makeup</li>
+                      <li><strong>Weekly New Lessons</strong> — one fresh, practical lesson added every week</li>
+                    </ul>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">🎓 Topics Covered Inside the Membership</h4>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li><strong>Makeup:</strong> Learn everything from fundamentals to advanced, trend-driven looks for real clients</li>
+                        <li><strong>Hair:</strong> Professional hairstyling techniques for bridal, party, and everyday looks</li>
+                        <li><strong>Nails:</strong> Basic to advanced nail skills to add high-value services</li>
+                        <li><strong>Business & Growth:</strong> Pricing, client acquisition, and scaling as a makeup professional</li>
+                        <li><strong>Instagram Growth Mini Course:</strong> Step-by-step system to attract clients and build your personal brand</li>
+                        <li><strong>AI Tools for Makeup Business:</strong> Smart tools to save time, automate work, and grow faster</li>
+                        <li><strong>Certification After Completion:</strong> Official certification to boost credibility and client trust</li>
+                      </ul>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-gray-100">
+                      <p><strong>One Membership, Everything Covered:</strong> Makeup, hair, nails, business, Instagram, and AI — all in one place</p>
+                      <p><strong>Turn Skills Into Income:</strong> Learn techniques and how to attract clients and grow professionally</p>
+                      <p><strong>Stay Credible & Future-Ready:</strong> Weekly updates, expert guidance, and certification to stay relevant</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Testimonials - Mobile Only */}
+              <div className="mb-8 lg:hidden">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What Students Are Saying</h3>
+
+                  <div className="space-y-5">
+                    {/* Rekha */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-lg">R</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Rekha – 15+ Years Experience (Mumbai)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">"I've been in the industry for over 15 years, but the business lessons gave me a fresh perspective on pricing and client handling."</p>
+                    </div>
+
+                    {/* Anjali */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-lg">A</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Anjali – Beginner Makeup Artist (Jaipur)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">"I was new to makeup and thought I'd need multiple courses. This one membership covered everything and saved me money and confusion."</p>
+                    </div>
+
+                    {/* Neha */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">N</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Neha – Working Professional (Delhi)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">"I'm not a full-time artist, but these lessons helped me confidently do my daily and event makeup."</p>
+                    </div>
+
+                    {/* Pooja */}
+                    <div className="border-b border-gray-200 pb-4">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">P</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Pooja – Freelance Makeup Artist (Indore)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">"The Instagram mini course made content planning simple. My profile looks professional and enquiries have improved."</p>
+                    </div>
+
+                    {/* Kavita */}
+                    <div className="pb-2">
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">K</div>
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm mb-1">Kavita – Certified Makeup Artist (Ahmedabad)</p>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 italic">"The certification added instant credibility and helped clients trust me more during bookings."</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
 
             </div>
 
 
 
-            {/* Terms and Complete Order */}
-            <div className="space-y-4">
+            {/* Terms and Complete Order - Desktop Only */}
+            <div className="hidden lg:block space-y-4">
               <p className="text-sm text-gray-700 text-left">
                 By clicking Complete Order, you agree to the{' '}
                 <a href="#" className="text-blue-600 hover:underline font-medium">Terms of Service</a>
