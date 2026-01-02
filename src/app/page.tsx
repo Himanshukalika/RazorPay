@@ -21,39 +21,43 @@ export default function Home() {
   const plans = {
     monthly: {
       id: 'monthly',
-      name: '1 Month Plan',
+      name: 'Monthly Membership',
       price: 999,
       duration: '1 Month',
       totalMonths: 1,
       savings: null,
       popular: false,
+      description: 'Perfect for getting started',
     },
     quarterly: {
       id: 'quarterly',
-      name: '3 Months Plan',
+      name: 'Quarterly Membership',
       price: 2799,
       duration: '3 Months',
       totalMonths: 3,
-      savings: '7% OFF',
+      savings: 'Save 7%',
       popular: true,
+      description: 'Best value for committed learners',
     },
     halfYearly: {
       id: 'halfYearly',
-      name: '6 Months Plan',
+      name: 'Half-Yearly Membership',
       price: 5499,
       duration: '6 Months',
       totalMonths: 6,
-      savings: '8% OFF',
+      savings: 'Save 8%',
       popular: false,
+      description: 'Extended learning journey',
     },
     yearly: {
       id: 'yearly',
-      name: '12 Months Plan',
+      name: 'Annual Membership',
       price: 9999,
       duration: '12 Months',
       totalMonths: 12,
-      savings: '17% OFF',
+      savings: 'Save 17%',
       popular: false,
+      description: 'Maximum savings & commitment',
     },
   };
 
@@ -381,9 +385,9 @@ export default function Home() {
               strokeLinejoin="round"
             />
           </svg>
-          <h1 className="text-3xl font-bold text-gray-900">Secure Checkout</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Join the Makeup Mastery Club</h1>
         </div>
-        <p className="text-base text-gray-500">Enter details to complete purchase.</p>
+        <p className="text-base text-gray-600">Secure your membership and start your beauty journey today</p>
       </div>
 
       {/* Main Content */}
@@ -396,7 +400,8 @@ export default function Home() {
 
               {/* Product Section - Plan Selection */}
               <div className="mb-8">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Choose Your Plan</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Select Your Membership</h2>
+                <p className="text-sm text-gray-600 mb-6">Choose the plan that works best for your learning journey</p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {Object.values(plans).map((plan) => (
@@ -497,8 +502,8 @@ export default function Home() {
                 {/* Achievement Photos Gallery */}
                 <div className="mt-8">
                   <div className="grid grid-cols-2 gap-3">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className={`rounded-lg overflow-hidden shadow-md border border-gray-200 ${i === 5 ? 'col-span-2 max-w-[50%] mx-auto' : ''}`}>
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="rounded-lg overflow-hidden shadow-md border border-gray-200">
                         <img
                           src={`https://via.placeholder.com/400x500/E8E8E8/666666?text=Achievement+${i}`}
                           alt={`Achievement ${i}`}
