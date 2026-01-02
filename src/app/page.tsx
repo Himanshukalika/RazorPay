@@ -28,6 +28,7 @@ export default function Home() {
       savings: null,
       popular: false,
       description: 'Perfect for getting started',
+      razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID || '', // Monthly plan (existing)
     },
     quarterly: {
       id: 'quarterly',
@@ -38,6 +39,7 @@ export default function Home() {
       savings: 'Save 7%',
       popular: true,
       description: 'Best value for committed learners',
+      razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID_QUARTERLY || '',
     },
     halfYearly: {
       id: 'halfYearly',
@@ -48,6 +50,7 @@ export default function Home() {
       savings: 'Save 8%',
       popular: false,
       description: 'Extended learning journey',
+      razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID_HALFYEARLY || '',
     },
     yearly: {
       id: 'yearly',
@@ -58,6 +61,7 @@ export default function Home() {
       savings: 'Save 17%',
       popular: false,
       description: 'Maximum savings & commitment',
+      razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID_YEARLY || '',
     },
   };
 
@@ -126,8 +130,8 @@ export default function Home() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              planId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID,
-              totalCount: 12, // 12 months
+              planId: currentPlan.razorpayPlanId,
+              totalCount: currentPlan.totalMonths,
               notes: {
                 customer_name: `${formData.firstName} ${formData.lastName}`,
                 customer_email: formData.email,
@@ -671,7 +675,7 @@ export default function Home() {
                   <div className="flex-shrink-0 w-full">
                     <div className="relative rounded-full overflow-hidden border-4 border-pink-200 shadow-lg mx-auto w-48 h-48">
                       <img
-                        src="https://via.placeholder.com/400x400/FFB6C1/FFFFFF?text=Founders+Photo"
+                        src="/images/founders.jpg"
                         alt="Heena & Dhvani Shah - Founders of HSM School of Makeup"
                         className="w-full h-full object-cover"
                       />
@@ -685,7 +689,7 @@ export default function Home() {
                     {[1, 2, 3, 4].map((i) => (
                       <div key={i} className="rounded-lg overflow-hidden shadow-md border border-gray-200">
                         <img
-                          src={`https://via.placeholder.com/400x500/E8E8E8/666666?text=Achievement+${i}`}
+                          src={`/images/achievement-${i}.png`}
                           alt={`Achievement ${i}`}
                           className="w-full h-full object-cover aspect-[3/4]"
                         />
