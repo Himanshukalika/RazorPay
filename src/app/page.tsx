@@ -686,28 +686,28 @@ export default function Home() {
                   <div className="w-full mt-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-lg overflow-hidden shadow-md border border-gray-200">
-                        <img 
+                        <img
                           src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/IMG_9097.jpg"
                           alt="HSM School - Achievement 1"
                           className="w-full h-full object-cover aspect-[3/4]"
                         />
                       </div>
                       <div className="rounded-lg overflow-hidden shadow-md border border-gray-200">
-                        <img 
+                        <img
                           src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/IMG_9107.jpg"
                           alt="HSM School - Achievement 2"
                           className="w-full h-full object-cover aspect-[3/4]"
                         />
                       </div>
                       <div className="rounded-lg overflow-hidden shadow-md border border-gray-200">
-                        <img 
+                        <img
                           src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/IMG_9106.jpg"
                           alt="HSM School - Achievement 3"
                           className="w-full h-full object-cover aspect-[3/4]"
                         />
                       </div>
                       <div className="rounded-lg overflow-hidden shadow-md border border-gray-200">
-                        <img 
+                        <img
                           src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/IMG_0972_Original-scaled-1-1536x2048.jpg"
                           alt="HSM School - Achievement 4"
                           className="w-full h-full object-cover aspect-[3/4]"
@@ -762,7 +762,7 @@ export default function Home() {
                       <div className="flex items-start gap-3 mb-2">
                         <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-pink-200">
                           <img
-                            src="/images/achievement-1.png"
+                            src="/images/founders.jpg"
                             alt="Rekha"
                             className="w-full h-full object-cover"
                           />
@@ -828,7 +828,7 @@ export default function Home() {
                       <div className="flex items-start gap-3 mb-2">
                         <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-green-200">
                           <img
-                            src="/images/founders.jpg"
+                            src="/images/achievement-1.png"
                             alt="Pooja"
                             className="w-full h-full object-cover"
                           />
