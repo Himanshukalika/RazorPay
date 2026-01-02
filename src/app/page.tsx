@@ -4,23 +4,60 @@ import { useState } from 'react';
 import { trackEvent, trackCustomEvent } from '@/components/FacebookPixel';
 
 export default function Home() {
-  const [quantity, setQuantity] = useState(1);
+  const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [selectedPayment, setSelectedPayment] = useState('razorpay');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSubscription, setIsSubscription] = useState(true); // AutoPay enabled by default
+  const [isSubscription, setIsSubscription] = useState(true);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
+    mobile: '',
     country: 'IN',
     state: '',
   });
-  const pricePerMonth = 999.00;
 
-  const handleQuantityChange = (delta: number) => {
-    const newQuantity = Math.max(1, Math.min(999, quantity + delta));
-    setQuantity(newQuantity);
+  // Plan configurations
+  const plans = {
+    monthly: {
+      id: 'monthly',
+      name: '1 Month Plan',
+      price: 999,
+      duration: '1 Month',
+      totalMonths: 1,
+      savings: null,
+      popular: false,
+    },
+    quarterly: {
+      id: 'quarterly',
+      name: '3 Months Plan',
+      price: 2799,
+      duration: '3 Months',
+      totalMonths: 3,
+      savings: '7% OFF',
+      popular: true,
+    },
+    halfYearly: {
+      id: 'halfYearly',
+      name: '6 Months Plan',
+      price: 5499,
+      duration: '6 Months',
+      totalMonths: 6,
+      savings: '8% OFF',
+      popular: false,
+    },
+    yearly: {
+      id: 'yearly',
+      name: '12 Months Plan',
+      price: 9999,
+      duration: '12 Months',
+      totalMonths: 12,
+      savings: '17% OFF',
+      popular: false,
+    },
   };
+
+  const currentPlan = plans[selectedPlan as keyof typeof plans];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -35,7 +72,7 @@ export default function Home() {
       trackEvent('InitiateCheckout', {
         content_name: 'MakeUp Mastry Club',
         content_category: 'Subscription',
-        value: pricePerMonth,
+        value: currentPlan.price,
         currency: 'INR',
       });
     }
@@ -51,15 +88,21 @@ export default function Home() {
 
   const handlePayment = async () => {
     // Validate form
-    if (!formData.firstName || !formData.lastName || !formData.email) {
-      alert('Please fill in all required fields (First Name, Last Name, Email)');
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile) {
+      alert('Please fill in all required fields (First Name, Last Name, Email, Mobile Number)');
+      return;
+    }
+
+    // Validate mobile number (10 digits)
+    if (formData.mobile.length !== 10 || !/^\d{10}$/.test(formData.mobile)) {
+      alert('Please enter a valid 10-digit mobile number');
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      const totalAmount = pricePerMonth * quantity;
+      const totalAmount = currentPlan.price;
 
       // Track AddToCart event when user clicks Complete Order
       trackEvent('AddToCart', {
@@ -84,6 +127,7 @@ export default function Home() {
               notes: {
                 customer_name: `${formData.firstName} ${formData.lastName}`,
                 customer_email: formData.email,
+                customer_mobile: formData.mobile,
               }
             }),
           });
@@ -124,25 +168,46 @@ export default function Home() {
                   trackEvent('Subscribe', {
                     content_name: 'MakeUp Mastry Club',
                     content_category: 'Subscription',
-                    value: pricePerMonth * quantity,
+                    value: currentPlan.price,
                     currency: 'INR',
-                    predicted_ltv: pricePerMonth * 12, // Annual value
+                    predicted_ltv: currentPlan.price * 12, // Annual value
                   });
 
                   trackEvent('Purchase', {
-                    content_name: 'MakeUp Mastry Club - Monthly Subscription',
+                    content_name: `MakeUp Mastry Club - ${currentPlan.name}`,
                     content_type: 'product',
-                    value: pricePerMonth * quantity,
+                    value: currentPlan.price,
                     currency: 'INR',
-                    num_items: quantity,
+                    num_items: 1,
                   });
 
+                  // Save to Google Sheets
+                  try {
+                    await fetch('/api/save-to-sheet', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                        email: formData.email,
+                        mobile: formData.mobile,
+                        plan: currentPlan.name,
+                        amount: currentPlan.price,
+                        subscriptionId: response.razorpay_subscription_id,
+                        paymentId: response.razorpay_payment_id,
+                        timestamp: new Date().toISOString(),
+                      }),
+                    });
+                  } catch (error) {
+                    console.error('Failed to save to Google Sheets:', error);
+                    // Don't block the flow if sheet save fails
+                  }
 
                   // Redirect to thank you page with order details
                   const params = new URLSearchParams({
                     subscription_id: response.razorpay_subscription_id,
                     payment_id: response.razorpay_payment_id,
-                    amount: (pricePerMonth * quantity).toString(),
+                    amount: currentPlan.price.toString(),
                     type: 'subscription'
                   });
                   window.location.href = `/thank-you?${params.toString()}`;
@@ -225,11 +290,11 @@ export default function Home() {
                 if (verifyData.success) {
                   // Track successful one-time purchase
                   trackEvent('Purchase', {
-                    content_name: 'MakeUp Mastry Club - One-time Payment',
+                    content_name: `MakeUp Mastry Club - ${currentPlan.name}`,
                     content_type: 'product',
-                    value: pricePerMonth * quantity,
+                    value: currentPlan.price,
                     currency: 'INR',
-                    num_items: quantity,
+                    num_items: 1,
                   });
 
 
@@ -237,7 +302,7 @@ export default function Home() {
                   const params = new URLSearchParams({
                     order_id: response.razorpay_order_id,
                     payment_id: response.razorpay_payment_id,
-                    amount: (pricePerMonth * quantity).toString(),
+                    amount: currentPlan.price.toString(),
                     type: 'onetime'
                   });
                   window.location.href = `/thank-you?${params.toString()}`;
@@ -329,40 +394,118 @@ export default function Home() {
             {/* Single Common Card for All Sections */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
 
-              {/* Product Section */}
+              {/* Product Section - Plan Selection */}
               <div className="mb-8">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">MakeUp Mastry Club</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Choose Your Plan</h2>
 
-                <div className="border border-gray-200 rounded-lg p-4 sm:p-5">
-                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Makeup mastry test 1</h3>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-xl sm:text-2xl font-bold text-gray-900">₹{pricePerMonth.toFixed(2)}</span>
-                        <span className="text-sm text-gray-500">/ Month</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Object.values(plans).map((plan) => (
+                    <div
+                      key={plan.id}
+                      onClick={() => setSelectedPlan(plan.id)}
+                      className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedPlan === plan.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
+                      {plan.popular && (
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                          <span className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                            MOST POPULAR
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h3 className="text-base font-semibold text-gray-900">{plan.name}</h3>
+                          <p className="text-sm text-gray-500">{plan.duration} Access</p>
+                        </div>
+                        {plan.savings && (
+                          <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">
+                            {plan.savings}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-baseline gap-1 mt-3">
+                        <span className="text-2xl font-bold text-gray-900">₹{plan.price}</span>
+                        <span className="text-sm text-gray-500">total</span>
+                      </div>
+
+                      {plan.totalMonths > 1 && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          ₹{Math.round(plan.price / plan.totalMonths)}/month
+                        </p>
+                      )}
+
+                      <div className={`mt-3 w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPlan === plan.id
+                        ? 'border-blue-500 bg-blue-500'
+                        : 'border-gray-300'
+                        }`}>
+                        {selectedPlan === plan.id && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
 
-                    <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-                      <button
-                        onClick={() => handleQuantityChange(-1)}
-                        className="px-4 py-2 text-gray-600 hover:bg-gray-50 transition-colors border-r border-gray-300"
-                      >
-                        −
-                      </button>
-                      <input
-                        type="text"
-                        value={quantity}
-                        readOnly
-                        className="w-16 text-center py-2 text-base font-medium"
+              {/* Train With The Founders Section */}
+              <div className="mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6">
+                  Train With The Founders — Heena & Dhvani Shah
+                </h2>
+
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                  {/* Text Content */}
+                  <div className="flex-1 text-gray-700 text-sm sm:text-base leading-relaxed">
+                    <p className="mb-4">
+                      <span className="font-semibold">Heena Shah and Dhvani Shah</span> are the power duo behind{' '}
+                      <span className="font-semibold">HSM School of Makeup & Hair</span> — a platform that has trained thousands of artists across India.
+                    </p>
+
+                    <p className="mb-4">
+                      With <span className="font-semibold">40+ years of combined experience</span>, they've worked with Bollywood icons like Jacqueline Fernandez, Shehnaaz Gill, Javed Jaffrey, and Nawazuddin Siddiqui.
+                    </p>
+
+                    <p className="mb-4">
+                      Their mission is to make world-class beauty education{' '}
+                      <span className="font-semibold">simple, affordable & accessible</span> for every woman.
+                    </p>
+
+                    <p>
+                      Inside this club, they share the same training taught in their luxury academy — now brought to your home. Learn from mentors who've built confidence and careers for thousands of women just like you.
+                    </p>
+                  </div>
+
+                  {/* Founders Photo */}
+                  <div className="flex-shrink-0 w-full md:w-64">
+                    <div className="relative rounded-full overflow-hidden border-4 border-pink-200 shadow-lg mx-auto w-48 h-48 md:w-64 md:h-64">
+                      <img
+                        src="https://via.placeholder.com/400x400/FFB6C1/FFFFFF?text=Founders+Photo"
+                        alt="Heena & Dhvani Shah - Founders of HSM School of Makeup"
+                        className="w-full h-full object-cover"
                       />
-                      <button
-                        onClick={() => handleQuantityChange(1)}
-                        className="px-4 py-2 text-gray-600 hover:bg-gray-50 transition-colors border-l border-gray-300"
-                      >
-                        +
-                      </button>
                     </div>
+                  </div>
+                </div>
+
+                {/* Achievement Photos Gallery */}
+                <div className="mt-8">
+                  <div className="grid grid-cols-2 gap-3">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className={`rounded-lg overflow-hidden shadow-md border border-gray-200 ${i === 5 ? 'col-span-2 max-w-[50%] mx-auto' : ''}`}>
+                        <img
+                          src={`https://via.placeholder.com/400x500/E8E8E8/666666?text=Achievement+${i}`}
+                          alt={`Achievement ${i}`}
+                          className="w-full h-full object-cover aspect-[3/4]"
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -378,16 +521,16 @@ export default function Home() {
                     </div>
 
                     <div className="flex justify-between items-start border-b border-gray-100 pb-3">
-                      <p className="text-sm text-gray-900">Makeup mastry test 1 x {quantity}</p>
+                      <p className="text-sm text-gray-900">{currentPlan.name}</p>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">₹{(pricePerMonth * quantity).toFixed(2)}</p>
-                        <p className="text-xs text-gray-500">Per Month</p>
+                        <p className="text-sm font-medium text-gray-900">₹{currentPlan.price.toFixed(2)}</p>
+                        <p className="text-xs text-gray-500">{currentPlan.duration}</p>
                       </div>
                     </div>
 
                     <div className="flex justify-between items-center pt-1">
                       <p className="text-sm font-semibold text-green-600">Total</p>
-                      <p className="text-sm font-semibold text-green-600">₹{(pricePerMonth * quantity).toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-green-600">₹{currentPlan.price.toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
@@ -426,6 +569,17 @@ export default function Home() {
                     placeholder="Email Address"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
+                  />
+                  <input
+                    type="tel"
+                    name="mobile"
+                    value={formData.mobile}
+                    onChange={handleInputChange}
+                    placeholder="Mobile Number"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                    pattern="[0-9]{10}"
+                    maxLength={10}
                   />
                 </div>
               </div>
@@ -711,16 +865,16 @@ export default function Home() {
                 </div>
 
                 <div className="flex justify-between items-start border-b border-gray-100 pb-3">
-                  <p className="text-sm text-gray-900">Makeup mastry test 1 x {quantity}</p>
+                  <p className="text-sm text-gray-900">{currentPlan.name}</p>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">₹{(pricePerMonth * quantity).toFixed(2)}</p>
-                    <p className="text-xs text-gray-500">Per Month</p>
+                    <p className="text-sm font-medium text-gray-900">₹{currentPlan.price.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">{currentPlan.duration}</p>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-center pt-1">
                   <p className="text-sm font-semibold text-green-600">Total</p>
-                  <p className="text-sm font-semibold text-green-600">₹{(pricePerMonth * quantity).toFixed(2)}</p>
+                  <p className="text-sm font-semibold text-green-600">₹{currentPlan.price.toFixed(2)}</p>
                 </div>
               </div>
             </div>
