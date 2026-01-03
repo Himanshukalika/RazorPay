@@ -88,7 +88,7 @@ export default function Home() {
       totalMonths: 12,
       savings: 'You save ₹2,001 per year',
       popular: false,
-      description: 'Maximum transformation',
+      description: 'Complete MUA Transformation',
       subtitle: 'Complete professional development journey',
       warning: null,
       trustBadge: null,
