@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { trackEvent, trackCustomEvent } from '@/components/FacebookPixel';
 
 export default function Home() {
-  const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [selectedPlan, setSelectedPlan] = useState('quarterly');
   const [selectedPayment, setSelectedPayment] = useState('razorpay');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSubscription, setIsSubscription] = useState(true);
@@ -27,41 +27,67 @@ export default function Home() {
       totalMonths: 1,
       savings: null,
       popular: false,
-      description: 'Perfect for getting started',
-      razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID || '', // Monthly plan (existing)
+      description: 'Try it out',
+      warning: 'Not recommended if you\'re serious about skill growth',
+      subtitle: 'Most students quit before seeing results',
+      trustBadge: null,
+      razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID || '',
+      bonus: null,
     },
     quarterly: {
       id: 'quarterly',
-      name: 'Quarterly Membership',
+      name: 'Growth Plan – Best for Results',
       price: 2799,
-      duration: '3 Months',
+      duration: '90 Days',
       totalMonths: 3,
-      savings: 'Save 7%',
+      savings: '7% monthly = 21% savings quarterly',
       popular: true,
-      description: 'Best value for committed learners',
+      description: 'Serious Artist Plan',
+      subtitle: 'Minimum time needed to see real skill + income improvement',
+      trustBadge: 'Chosen by 67% of active members',
+      warning: null,
       razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID_QUARTERLY || '',
+      bonus: {
+        title: 'Quarterly Only Bonuses',
+        items: [
+          'Client Pricing Template',
+          'Bridal Booking Script',
+          'Instagram Reel Hooks for Makeup Artists',
+          'Live Q&A Replay Access',
+          'Content Calendar',
+          'AI for Editing Course'
+        ]
+      },
     },
     halfYearly: {
       id: 'halfYearly',
-      name: 'Half-Yearly Membership',
+      name: 'Professional Track',
       price: 5499,
       duration: '6 Months',
       totalMonths: 6,
-      savings: 'Save 8%',
+      savings: 'Save ₹495 vs Monthly',
       popular: false,
-      description: 'Extended learning journey',
+      description: 'Deep skill mastery',
+      subtitle: 'For building a sustainable makeup career',
+      warning: null,
+      trustBadge: null,
       razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID_HALFYEARLY || '',
+      bonus: null,
     },
     yearly: {
       id: 'yearly',
-      name: 'Annual Membership',
+      name: 'Career Accelerator',
       price: 9999,
       duration: '12 Months',
       totalMonths: 12,
-      savings: 'Save 17%',
+      savings: 'Save ₹1,989 vs Monthly',
       popular: false,
-      description: 'Maximum savings & commitment',
+      description: 'Maximum transformation',
+      subtitle: 'Complete professional development journey',
+      warning: null,
+      trustBadge: null,
       razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID_YEARLY || '',
+      bonus: null,
     },
   };
 
@@ -391,7 +417,7 @@ export default function Home() {
           </svg>
           <h1 className="text-3xl font-bold text-gray-900">Join the Makeup Mastery Club</h1>
         </div>
-        <p className="text-base text-gray-600">Secure your membership and start your beauty journey today</p>
+        <p className="text-base text-gray-600">40,000+ Makeup artists trained till now</p>
       </div>
 
       {/* Main Content */}
@@ -412,40 +438,75 @@ export default function Home() {
                     <div
                       key={plan.id}
                       onClick={() => setSelectedPlan(plan.id)}
-                      className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedPlan === plan.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${plan.id === 'monthly'
+                        ? 'opacity-75 scale-95' // De-emphasize monthly
+                        : ''
+                        } ${selectedPlan === plan.id
+                          ? 'border-blue-500 bg-blue-50 shadow-lg'
+                          : plan.id === 'monthly'
+                            ? 'border-gray-300' // Grey border for monthly
+                            : 'border-gray-200 hover:border-blue-300'
                         }`}
                     >
                       {plan.popular && (
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                          <span className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                            MOST POPULAR
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                          <span className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+                            🏆 BEST CHOICE
                           </span>
                         </div>
                       )}
 
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <h3 className="text-base font-semibold text-gray-900">{plan.name}</h3>
-                          <p className="text-sm text-gray-500">{plan.duration} Access</p>
+                          <h3 className="text-base font-bold text-gray-900">{plan.name}</h3>
+                          <p className="text-xs text-gray-600 mt-0.5">{plan.description}</p>
+                          {plan.subtitle && (
+                            <p className="text-xs text-blue-600 font-medium mt-1 italic">
+                              {plan.subtitle}
+                            </p>
+                          )}
                         </div>
-                        {plan.savings && (
-                          <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">
-                            {plan.savings}
-                          </span>
-                        )}
                       </div>
 
-                      <div className="flex items-baseline gap-1 mt-3">
+                      {plan.trustBadge && (
+                        <div className="bg-blue-50 border border-blue-200 rounded px-2 py-1 mb-2">
+                          <p className="text-xs text-blue-700 font-semibold">✨ {plan.trustBadge}</p>
+                        </div>
+                      )}
+
+                      <div className="flex items-baseline gap-1 mt-2">
                         <span className="text-2xl font-bold text-gray-900">₹{plan.price}</span>
-                        <span className="text-sm text-gray-500">total</span>
+                        <span className="text-sm text-gray-500">for {plan.duration}</span>
                       </div>
 
                       {plan.totalMonths > 1 && (
                         <p className="text-xs text-gray-500 mt-1">
                           ₹{Math.round(plan.price / plan.totalMonths)}/month
                         </p>
+                      )}
+
+                      {plan.savings && (
+                        <div className="bg-green-50 border border-green-200 rounded px-2 py-1.5 mt-2">
+                          <p className="text-xs text-green-700 font-bold">✅ {plan.savings}</p>
+                        </div>
+                      )}
+
+                      {plan.warning && (
+                        <div className="bg-red-50 border border-red-200 rounded px-2 py-1.5 mt-2">
+                          <p className="text-xs text-red-600 font-medium">⚠️ {plan.warning}</p>
+                        </div>
+                      )}
+
+                      {plan.bonus && (
+                        <div className="bg-yellow-50 border border-yellow-300 rounded px-2 py-2 mt-2">
+                          <p className="text-xs font-bold text-yellow-800 mb-1">🎁 {plan.bonus.title}:</p>
+                          <ul className="text-xs text-yellow-700 space-y-0.5">
+                            {plan.bonus.items.map((item, idx) => (
+                              <li key={idx}>• {item}</li>
+                            ))}
+                          </ul>
+                          <p className="text-xs text-red-600 font-semibold mt-1">❌ Not included in Monthly</p>
+                        </div>
                       )}
 
                       <div className={`mt-3 w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPlan === plan.id
@@ -643,8 +704,8 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Train With The Founders Section - Mobile Only */}
-              <div className="mb-8 lg:hidden">
+              {/* Train With The Founders Section */}
+              <div className="mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6">
                   Train With The Founders — Heena & Dhvani Shah
                 </h2>
@@ -672,7 +733,7 @@ export default function Home() {
                   </div>
 
                   {/* Founders Photo */}
-                  <div className="w-full mt-6">
+                  <div className="w-full mt-6 lg:max-w-2xl lg:mx-auto">
                     <div className="rounded-lg overflow-hidden shadow-lg border-2 border-pink-200">
                       <img
                         src="https://membership.hsmschoolmakeup.in/wp-content/uploads/2025/11/Untitled-design-2025-06-08T020303.110.png"
@@ -683,7 +744,7 @@ export default function Home() {
                   </div>
 
                   {/* Additional Founders Gallery */}
-                  <div className="w-full mt-4">
+                  <div className="w-full mt-4 lg:max-w-2xl lg:mx-auto">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-lg overflow-hidden shadow-md border border-gray-200">
                         <img
@@ -999,7 +1060,13 @@ export default function Home() {
                 {/* Rekha */}
                 <div className="border-b border-gray-200 pb-4">
                   <div className="flex items-start gap-3 mb-2">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-lg">R</div>
+                    <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-pink-200">
+                      <img
+                        src="/images/founders.jpg"
+                        alt="Rekha"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <div>
                       <p className="font-medium text-gray-900 text-sm mb-1">Rekha – 15+ Years Experience (Mumbai)</p>
                       <div className="flex gap-0.5">
@@ -1015,7 +1082,13 @@ export default function Home() {
                 {/* Anjali */}
                 <div className="border-b border-gray-200 pb-4">
                   <div className="flex items-start gap-3 mb-2">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-lg">A</div>
+                    <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-purple-200">
+                      <img
+                        src="/images/achievement-2.png"
+                        alt="Anjali"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <div>
                       <p className="font-medium text-gray-900 text-sm mb-1">Anjali – Beginner Makeup Artist (Jaipur)</p>
                       <div className="flex gap-0.5">
@@ -1031,7 +1104,13 @@ export default function Home() {
                 {/* Neha */}
                 <div className="border-b border-gray-200 pb-4">
                   <div className="flex items-start gap-3 mb-2">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">N</div>
+                    <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-blue-200">
+                      <img
+                        src="/images/achievement-3.png"
+                        alt="Neha"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <div>
                       <p className="font-medium text-gray-900 text-sm mb-1">Neha – Working Professional (Delhi)</p>
                       <div className="flex gap-0.5">
@@ -1047,7 +1126,13 @@ export default function Home() {
                 {/* Pooja */}
                 <div className="border-b border-gray-200 pb-4">
                   <div className="flex items-start gap-3 mb-2">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">P</div>
+                    <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-green-200">
+                      <img
+                        src="/images/achievement-1.png"
+                        alt="Pooja"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <div>
                       <p className="font-medium text-gray-900 text-sm mb-1">Pooja – Freelance Makeup Artist (Indore)</p>
                       <div className="flex gap-0.5">
@@ -1063,7 +1148,13 @@ export default function Home() {
                 {/* Kavita */}
                 <div className="pb-2">
                   <div className="flex items-start gap-3 mb-2">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">K</div>
+                    <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-orange-200">
+                      <img
+                        src="/images/kavita.png"
+                        alt="Kavita"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <div>
                       <p className="font-medium text-gray-900 text-sm mb-1">Kavita – Certified Makeup Artist (Ahmedabad)</p>
                       <div className="flex gap-0.5">
