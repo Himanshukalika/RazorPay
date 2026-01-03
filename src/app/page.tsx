@@ -29,7 +29,7 @@ export default function Home() {
       popular: false,
       description: 'Try it out',
       warning: null,
-      subtitle: 'Most students quit before seeing results',
+      subtitle: 'Suitable for dabblers',
       trustBadge: null,
       razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID || '',
       bonus: null,
@@ -75,13 +75,8 @@ export default function Home() {
       bonus: {
         title: 'Everything in Growth Plan +',
         items: [
-          'Client Pricing Template',
-          'Bridal Booking Script',
-          'Instagram Reel Hooks for Makeup Artists',
-          'Live Q&A Replay Access',
-          'Content Calendar',
-          'AI for Editing Course',
-          '1-on-1 Onboarding Call'
+          '1-on-1 Onboarding Call',
+          'Secret Bonus'
         ]
       },
     },
@@ -91,7 +86,7 @@ export default function Home() {
       price: 9999,
       duration: '12 Months',
       totalMonths: 12,
-      savings: '17% monthly = 17% savings yearly',
+      savings: 'You save ₹2,001 per year',
       popular: false,
       description: 'Maximum transformation',
       subtitle: 'Complete professional development journey',
@@ -101,19 +96,23 @@ export default function Home() {
       bonus: {
         title: 'Everything in Growth Plan +',
         items: [
-          'Client Pricing Template',
-          'Bridal Booking Script',
-          'Instagram Reel Hooks for Makeup Artists',
-          'Live Q&A Replay Access',
-          'Content Calendar',
-          'AI for Editing Course',
-          '1-on-1 Onboarding Call'
+          '1-on-1 Onboarding Call',
+          'Secret Bonus'
         ]
       },
     },
   };
 
   const currentPlan = plans[selectedPlan as keyof typeof plans];
+
+  // Handler for bottom button - scrolls to top then processes payment
+  const handlePaymentWithScroll = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Wait for scroll to complete before processing payment
+    setTimeout(() => {
+      handlePayment();
+    }, 500);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -956,7 +955,7 @@ export default function Home() {
               {/* Second Complete Order Button - Mobile Only (Bottom) */}
               <div className="lg:hidden space-y-4 mb-8">
                 <button
-                  onClick={handlePayment}
+                  onClick={handlePaymentWithScroll}
                   disabled={isProcessing}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold text-xl py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg"
                 >
