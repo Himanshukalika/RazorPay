@@ -28,7 +28,7 @@ export default function Home() {
       savings: null,
       popular: false,
       description: 'Try it out',
-      warning: 'Not recommended if you\'re serious about skill growth',
+      warning: null,
       subtitle: 'Most students quit before seeing results',
       trustBadge: null,
       razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID || '',
@@ -65,14 +65,25 @@ export default function Home() {
       price: 5499,
       duration: '6 Months',
       totalMonths: 6,
-      savings: 'Save ₹495 vs Monthly',
+      savings: '8% monthly = 48% savings half-yearly',
       popular: false,
       description: 'Deep skill mastery',
       subtitle: 'For building a sustainable makeup career',
       warning: null,
       trustBadge: null,
       razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID_HALFYEARLY || '',
-      bonus: null,
+      bonus: {
+        title: 'Everything in Growth Plan +',
+        items: [
+          'Client Pricing Template',
+          'Bridal Booking Script',
+          'Instagram Reel Hooks for Makeup Artists',
+          'Live Q&A Replay Access',
+          'Content Calendar',
+          'AI for Editing Course',
+          '1-on-1 Onboarding Call'
+        ]
+      },
     },
     yearly: {
       id: 'yearly',
@@ -80,14 +91,25 @@ export default function Home() {
       price: 9999,
       duration: '12 Months',
       totalMonths: 12,
-      savings: 'Save ₹1,989 vs Monthly',
+      savings: '17% monthly = 17% savings yearly',
       popular: false,
       description: 'Maximum transformation',
       subtitle: 'Complete professional development journey',
       warning: null,
       trustBadge: null,
       razorpayPlanId: process.env.NEXT_PUBLIC_RAZORPAY_PLAN_ID_YEARLY || '',
-      bonus: null,
+      bonus: {
+        title: 'Everything in Growth Plan +',
+        items: [
+          'Client Pricing Template',
+          'Bridal Booking Script',
+          'Instagram Reel Hooks for Makeup Artists',
+          'Live Q&A Replay Access',
+          'Content Calendar',
+          'AI for Editing Course',
+          '1-on-1 Onboarding Call'
+        ]
+      },
     },
   };
 
